@@ -1,0 +1,20 @@
+import fastai
+
+from fastai.basics import *
+from fastai.vision import *
+from google.colab import drive
+drive.mount('/content/drive')
+
+data_path = Path('/content/drive/My Drive/Hands')
+data_path.ls()
+bs=50
+data = ImageDataBunch.from_folder(data_path, ds_tfms=get_transforms(), size=225, bs=bs).normalize(imagenet_stats)
+learn = create_cnn(data, models.resnet34, metrics=accuracy)
+
+learn.fit_one_cycle(55)
+learn.save('hands-stage-1')
+interp = ClassificationInterpretation.from_learner(learn)
+interp.plot_confusion_matrix(figsize=(12,12), dpi=60)
+learn.unfreeze()
+learn.fit_one_cycle(45)
+data.show_batch(rows=3, figsize=(7,6))
